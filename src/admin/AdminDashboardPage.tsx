@@ -20,7 +20,6 @@ type Translations = {
 const translations: Record<HubUiLang, Translations> = {
   en: {
     pageTitle: "Admin",
-    subtitle: "Choose an admin module.",
     backHome: "Back to hub",
     accessDenied: "You do not have access to this page.",
     cardStorageTitle: "Storage Management",
