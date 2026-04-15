@@ -21,7 +21,7 @@ function classicScriptForFileProtocol(): Plugin {
 }
 
 export default defineConfig({
-  base: "./",
+  base: "/",
   server: {
     // `npm run dev` 时自动用默认浏览器打开本地地址，改代码会热更新，无需 build。
     open: true,
