@@ -142,8 +142,21 @@ export function AdminStoragePage() {
   useEffect(() => {
     if (!supabaseReady || !user || !isAdmin) return;
     const sb = getSupabase();
-    sb.functions.invoke("admin-storage-usage").then(({ data, error }) => {
-      if (!error && data) setProjectStorage(data as ProjectStorage);
+    // Use existing admin RPC to get all users' storage
+    sb.rpc("admin_list_users_with_storage").then(({ data }) => {
+      const rows = (data ?? []) as { used_storage_bytes: number }[];
+      const totalUsed = rows.reduce(
+        (s: number, r) => s + (r.used_storage_bytes || 0),
+        0,
+      );
+      const totalMb = 1024;
+      setProjectStorage({
+        usedBytes: totalUsed,
+        usedMb: +(totalUsed / (1024 * 1024)).toFixed(2),
+        totalMb,
+        totalBytes: totalMb * 1024 * 1024,
+        percent: +((totalUsed / (totalMb * 1024 * 1024)) * 100).toFixed(1),
+      });
       setStorageLoading(false);
     });
   }, [supabaseReady, user, isAdmin]);
