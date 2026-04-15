@@ -15,3 +15,5 @@ dist/
 
 # TypeScript
 *.tsbuildinfo
+supabase/.temp/
+supabase/.temp/
