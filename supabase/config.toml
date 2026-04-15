@@ -1,0 +1,7 @@
+# Supabase local / deploy config (extend as needed)
+
+[functions.generate-deadline-reminders]
+verify_jwt = false
+
+[functions.send-deadline-reminders]
+verify_jwt = false

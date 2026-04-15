@@ -1,0 +1,18 @@
+
+
+  VITE v6.4.2  ready in 284 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+14:46:25 [vite] .env changed, restarting server...
+14:46:25 [vite] .env changed, restarting server... (x2)
+14:46:25 [vite] server restarted.
+15:03:50 [vite] .env changed, restarting server...
+15:03:50 [vite] server restarted.
+15:06:21 [vite] .env changed, restarting server...
+15:06:21 [vite] server restarted.
+^CBurger@MacBook-Air student_helper % > student-tools-hub@0.0.0 dev
+zsh: command not found: devBurger@MacBook-Air student_helper % > student-tools-hub@0.0.0 dev
+zsh: command not found: devBurger@MacBook-Air student_helper % > student-tools-hub@0.0.0 dev
+zsh: command not found: devcd /Users/Burger/Documents/burger/student_helper && npm run dev
