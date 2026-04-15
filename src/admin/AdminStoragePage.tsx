@@ -8,6 +8,14 @@ import { useHubUiLang, type HubUiLang } from "../context/HubUiLangContext";
 import { getSupabase } from "../lib/supabase";
 import { formatStorageMb, storageUsageRatio } from "../lib/storageQuota";
 
+type ProjectStorage = {
+  usedBytes: number;
+  usedMb: number;
+  totalMb: number;
+  totalBytes: number;
+  percent: number;
+};
+
 type AdminUserRow = {
   user_id: string;
   email: string;
@@ -98,6 +106,8 @@ export function AdminStoragePage() {
   const [rows, setRows] = useState<AdminUserRow[]>([]);
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [projectStorage, setProjectStorage] = useState<ProjectStorage | null>(null);
+  const [storageLoading, setStorageLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<AdminUserRow | null>(null);
   const [editMb, setEditMb] = useState("");
@@ -128,6 +138,15 @@ export function AdminStoragePage() {
       setLoading(false);
     }
   }, [authLoading, supabaseReady, user, isAdmin, load]);
+
+  useEffect(() => {
+    if (!supabaseReady || !user || !isAdmin) return;
+    const sb = getSupabase();
+    sb.functions.invoke("admin-storage-usage").then(({ data, error }) => {
+      if (!error && data) setProjectStorage(data as ProjectStorage);
+      setStorageLoading(false);
+    });
+  }, [supabaseReady, user, isAdmin]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -225,6 +244,50 @@ export function AdminStoragePage() {
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">
           {t.pageTitle}
         </h1>
+
+        {/* Project Storage Overview Card */}
+        {storageLoading ? null : projectStorage ? (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-500">
+                  {language === "zh" ? "项目总存储" : "Project Storage"}
+                </p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">
+                  {projectStorage.usedMb} MB{" "}
+                  <span className="text-base font-normal text-slate-400">
+                    / {projectStorage.totalMb} MB
+                  </span>
+                </p>
+              </div>
+              <div className="text-right">
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${
+                    projectStorage.percent >= 90
+                      ? "bg-red-100 text-red-700"
+                      : projectStorage.percent >= 70
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {projectStorage.percent}%
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  projectStorage.percent >= 90
+                    ? "bg-red-500"
+                    : projectStorage.percent >= 70
+                      ? "bg-amber-500"
+                      : "bg-blue-500"
+                }`}
+                style={{ width: `${Math.min(100, projectStorage.percent)}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-6">
           <input
