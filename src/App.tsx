@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { AdminDashboardPage } from "./admin/AdminDashboardPage";
+import { AdminEmailPage } from "./admin/AdminEmailPage";
 import { AdminStoragePage } from "./admin/AdminStoragePage";
 import { AuthLoginPage } from "./auth/AuthLoginPage";
 import { AuthSignupPage } from "./auth/AuthSignupPage";
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/tools/organizer" element={<StudyOrganizerPage />} />
       <Route path="/admin" element={<AdminDashboardPage />} />
       <Route path="/admin/storage" element={<AdminStoragePage />} />
+      <Route path="/admin/email" element={<AdminEmailPage />} />
     </Routes>
   );
 }
