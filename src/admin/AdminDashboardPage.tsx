@@ -14,8 +14,16 @@ import { getSupabase } from "../lib/supabase";
 
 type DayStats = {
   date: string;
+  userHash: string;
   count: number;
 };
+
+/** Short, opaque user identifier for admin display (privacy-safe) */
+function hashUser(uid: string): string {
+  let h = 0;
+  for (let i = 0; i < uid.length; i++) h = ((h << 5) - h + uid.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36).toUpperCase().slice(0, 6);
+}
 
 type Translations = {
   pageTitle: string;
@@ -26,6 +34,7 @@ type Translations = {
   emailStatsTitle: string;
   emailStatsDesc: string;
   date: string;
+  user: string;
   sentCount: string;
   totalSent: string;
   noData: string;
@@ -42,6 +51,7 @@ const translations: Record<HubUiLang, Translations> = {
     emailStatsTitle: "Email Statistics",
     emailStatsDesc: "Daily reminder email send count",
     date: "Date",
+    user: "User",
     sentCount: "Sent",
     totalSent: "Total sent",
     noData: "No emails sent yet.",
@@ -56,6 +66,7 @@ const translations: Record<HubUiLang, Translations> = {
     emailStatsTitle: "邮件统计",
     emailStatsDesc: "每日提醒邮件发送数量",
     date: "日期",
+    user: "用户",
     sentCount: "发送数量",
     totalSent: "累计发送",
     noData: "暂无邮件发送记录。",
@@ -83,7 +94,7 @@ export function AdminDashboardPage() {
     const sb = getSupabase();
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     sb.from("deadline_reminder_events")
-      .select("sent_at")
+      .select("user_id, sent_at")
       .eq("status", "sent")
       .gte("sent_at", thirtyDaysAgo)
       .order("sent_at", { ascending: false })
@@ -91,16 +102,20 @@ export function AdminDashboardPage() {
         if (error) {
           setEmailError(t.loadError);
         } else {
-          // Group by date
+          // Group by date + user (privacy-safe: user_id hashed)
           const grouped: Record<string, number> = {};
           for (const row of data ?? []) {
             const d = (row.sent_at as string).slice(0, 10);
-            grouped[d] = (grouped[d] || 0) + 1;
+            const key = `${d}|${hashUser(row.user_id as string)}`;
+            grouped[key] = (grouped[key] || 0) + 1;
           }
           setEmailStats(
             Object.entries(grouped)
-              .map(([date, count]) => ({ date, count }))
-              .sort((a, b) => b.date.localeCompare(a.date)),
+              .map(([key, count]) => {
+                const [date, userHash] = key.split("|");
+                return { date, userHash, count };
+              })
+              .sort((a, b) => b.date.localeCompare(a.date) || a.userHash.localeCompare(b.userHash)),
           );
         }
         setEmailLoading(false);
@@ -218,13 +233,15 @@ export function AdminDashboardPage() {
                     <thead>
                       <tr className="border-b border-slate-100 text-left text-xs font-semibold uppercase text-slate-400">
                         <th className="pb-2">{t.date}</th>
+                        <th className="pb-2">{t.user}</th>
                         <th className="pb-2 text-right">{t.sentCount}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {emailStats.slice(0, 10).map((d) => (
-                        <tr key={d.date} className="border-b border-slate-50">
+                        <tr key={`${d.date}-${d.userHash}`} className="border-b border-slate-50">
                           <td className="py-1.5 text-slate-700">{d.date}</td>
+                          <td className="py-1.5 font-mono text-xs text-slate-500">#{d.userHash}</td>
                           <td className="py-1.5 text-right font-medium text-slate-900">
                             {d.count}
                           </td>
